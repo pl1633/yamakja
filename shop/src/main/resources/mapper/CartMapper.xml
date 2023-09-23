@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yamakja.shop.mapper.CartMapper">
+    <insert id="addCartItem">
+        INSERT INTO CARTITEM
+            (CARTITEMID, CARTMEMBERID, QUANTITY)
+        VALUES
+            (#{cartItemId}, #{cartMemberId}, #{quantity})
+    </insert>
+
+    <select id="getCartIdByMemberId" resultType="integer">
+        SELECT DISTINCT CARTITEMID FROM CARTITEM
+        WHERE CARTMEMBERID = #{memberId}
+    </select>
+
+    <select id="getItemsByCartItemId" resultType="com.yamakja.shop.domain.Cart">
+        SELECT
+            B.*, A.QUANTITY
+        FROM (SELECT CARTITEMID, SUM(QUANTITY) AS QUANTITY
+                FROM CARTITEM
+                WHERE CARTITEMID = #{itemId} AND CARTMEMBERID = #{memberId}
+                GROUP BY CARTITEMID) AS A LEFT JOIN ITEM AS B
+                ON B.ITEMID = A.CARTITEMID
+    </select>
+    <select id="hasItem" resultType="java.lang.Integer">
+        SELECT QUANTITY
+        FROM CARTITEM
+        WHERE CARTMEMBERID = #{memberId} AND CARTITEMID = #{itemId}
+    </select>
+    <select id="totalPrice" resultType="java.lang.Integer">
+        SELECT SUM(ITEM.PRICE * CARTITEM.QUANTITY)
+        FROM CARTITEM LEFT JOIN ITEM
+        ON CARTITEM.CARTITEMID = ITEM.ITEMID
+        WHERE CARTMEMBERID =  #{memberId}
+    </select>
+
+    <update id="updateCartItem">
+        UPDATE CARTITEM
+        SET QUANTITY = #{quantity}
+        WHERE CARTMEMBERID = #{cartMemberId}
+        AND CARTITEMID = #{cartItemId}
+    </update>
+
+    <update id="updateCartItemByCart">
+        UPDATE CARTITEM SET QUANTITY = #{quantity}
+        WHERE CARTITEMID = #{memberId} AND CARTITEMID = #{itemId}
+    </update>
+
+    <select id="getQuantityById" resultType="java.lang.Integer">
+        SELECT QUANTITY FROM CARTITEM
+        WHERE CARTMEMBERID = #{memberId} AND CARTITEMID = #{itemId}
+    </select>
+
+    <delete id="deleteCart">
+        DELETE FROM CARTITEM
+        WHERE CARTMEMBERID = #{memberId} AND CARTITEMID = #{itemId}
+    </delete>
+
+    <select id="hasCart" resultType="java.lang.Boolean">
+        SELECT * FROM CARTITEM WHERE CARTMEMBERID = #{memberId}
+        AND CARTITEMID = #{itemId}
+    </select>
+</mapper>
